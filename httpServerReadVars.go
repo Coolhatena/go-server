@@ -15,8 +15,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		response := Response{Message: "Se recibio una solicitud GET"}
-		json.NewEncoder(w).Encode(response)
+		// 1. Parsear los valores del cuerpo de la solicitud
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Error al parsear los datos", http.StatusBadRequest)
+			return
+		}
+
+		// 2. Convertir los datos a un mapa
+		data := make(map[string]string)
+		for key, values := range r.Form {
+			data[key] = values[0] // Tomamos el primer valor en caso de que haya varios
+		}
+
+		// 3. Convertir el mapa a JSON
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
 
 	case "POST":
 		response := Response{Message: "Se recibio una solicitud POST"}
@@ -34,22 +48,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 	}
 
-	// 1. Parsear los valores del cuerpo de la solicitud
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error al parsear los datos", http.StatusBadRequest)
-		return
-	}
-
-	// 2. Convertir los datos a un mapa
-	data := make(map[string]string)
-	for key, values := range r.Form {
-		data[key] = values[0] // Tomamos el primer valor en caso de que haya varios
-	}
-
-	// 3. Convertir el mapa a JSON
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
 }
 
 func main() {
